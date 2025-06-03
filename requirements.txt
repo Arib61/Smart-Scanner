@@ -1,0 +1,24 @@
+# OCR
+paddleocr
+paddlepaddle
+easyocr
+pytesseract
+
+# Traitement d'image
+opencv-python
+Pillow
+numpy
+
+# PDF
+pdfkit
+PyMuPDF
+fpdf
+reportlab
+
+# Excel et DataFrame
+pandas
+openpyxl
+
+# Interface web
+streamlit
+Jinja2
