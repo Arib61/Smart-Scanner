@@ -9,6 +9,11 @@ from pdf_creator import create_searchable_pdf
 from image_to_excel_converter_local import image_to_excel_converter_local as image_to_excel_converter
 from attendance_sheet import generate_attendance_pdf
 from group_maker import create_student_groups
+import pandas as pd
+from fpdf import FPDF
+from datetime import datetime
+from generate_absence_list import generate_absence_list
+from generate_absence_list import generate_absence_from_binomes
 
 # Configuration
 st.set_page_config(
@@ -1002,7 +1007,15 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Navigation avec tabs
-tab1, tab2, tab3, tab4 = st.tabs(["🏠 Accueil", "📄 PDF Scanner", "📊 Excel Generator", "👥 Group Manager"])
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    "🏠 Accueil", 
+    "📄 PDF Scanner", 
+    "📊 Excel Generator", 
+    "👥 Group Manager",
+    "📝 Liste Absence",
+    "📄 Liste Binômes TP"
+])
+
 
 with tab1:
     # Section des métriques institutionnelles
@@ -1602,3 +1615,170 @@ with tab4:
                                 st.markdown('<div class="error-box">❌ Impossible de générer les fichiers de groupe.</div>', unsafe_allow_html=True)
                         except Exception as e:
                             st.markdown(f'<div class="error-box">❌ Erreur: {str(e)}</div>', unsafe_allow_html=True)
+    with tab5:
+        st.markdown("""
+        <div style="color: white; padding: 12px; border-radius: 8px; font-size: 34px;">
+            📝 Générateur de Liste d'Absence
+        </div>
+        """, unsafe_allow_html=True)
+        
+        col1, col2 = st.columns([1, 1])
+        
+        with col1:
+            st.markdown("### 🏫 Paramètres de la liste")
+            
+            # Sélection de la filière
+            filiere = st.selectbox(
+                "Filière",
+                ["GINF1", "GINF2", "GINF3"],
+                index=1,  # GINF2 par défaut
+                help="Sélectionnez la filière concernée"
+            )
+            
+            # Nombre de séances
+            num_seances = st.number_input(
+                "Nombre de séances",
+                min_value=1,
+                max_value=20,
+                value=6,
+                help="Nombre de colonnes de présence à prévoir"
+            )
+            
+            # Format de sortie
+            output_format = st.radio(
+                "Format de sortie",
+                ["Excel", "PDF"],
+                horizontal=True,
+                help="Choisissez le format de fichier à générer"
+            ).lower()
+            
+            # Bouton de génération
+            if st.button("🔄 Générer la liste", type="primary"):
+                with st.spinner("Génération en cours..."):
+                    try:
+                        output_path = generate_absence_list(
+                            filiere=filiere,
+                            num_seances=num_seances,
+                            output_format=output_format
+                        )
+                        
+                        if output_path and os.path.exists(output_path):
+                            st.success("✅ Liste générée avec succès!")
+                            
+                            # Afficher un aperçu pour Excel
+                            if output_format == "excel":
+                                df = pd.read_excel(output_path)
+                                st.dataframe(df.head(10))
+                            
+                            # Bouton de téléchargement
+                            with open(output_path, "rb") as f:
+                                st.download_button(
+                                    label=f"📥 Télécharger {output_format.upper()}",
+                                    data=f.read(),
+                                    file_name=os.path.basename(output_path),
+                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" if output_format == "excel" else "application/pdf"
+                                )
+                        
+                    except Exception as e:
+                        st.error(f"❌ Erreur lors de la génération: {str(e)}")
+
+            
+
+        
+        with col2:
+            st.markdown("### ℹ️ Instructions")
+            st.markdown("""
+            <div class="professional-card">
+                <h3>📌 Comment utiliser</h3>
+                <ol style="line-height: 2; font-size: 1.1rem;">
+                    <li>Sélectionnez la filière concernée</li>
+                    <li>Indiquez le nombre de séances à suivre</li>
+                    <li>Choisissez le format de sortie (Excel ou PDF)</li>
+                    <li>Cliquez sur "Générer la liste"</li>
+                    <li>Téléchargez le fichier généré</li>
+                </ol>
+                
+                <h3 style="margin-top: 1.5rem;">✨ Fonctionnalités</h3>
+                <ul style="line-height: 2; font-size: 1.1rem;">
+                    <li>Génération automatique avec mise en forme</li>
+                    <li>30 lignes pré-remplies pour les étudiants</li>
+                    <li>Colonnes séparées pour chaque séance</li>
+                    <li>Format professionnel prêt à imprimer</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Afficher un exemple de PDF existant
+            st.markdown("### 📄 Exemple de liste")
+            with open("inputs/Liste_ginf2.pdf", "rb") as f:
+                st.download_button(
+                    label="📥 Télécharger exemple PDF (GINF2)",
+                    data=f.read(),
+                    file_name="Liste_Exemple_GINF2.pdf",
+                    mime="application/pdf"
+                )
+            
+            # Afficher un exemple de Excel existant
+            with open("inputs/Liste_ginf2.xlsx", "rb") as f:
+                st.download_button(
+                    label="📊 Télécharger exemple Excel (GINF2)",
+                    data=f.read(),
+                    file_name="Liste_Exemple_GINF2.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+with tab6:
+    st.markdown("""
+    <div style="color: white; padding: 12px; border-radius: 8px; font-size: 34px;">
+        👥 Liste de Présence par Binômes TP
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns([1, 1])
+
+    with col1:
+        st.markdown("### 🎓 Sélectionnez la filière")
+
+        filiere_binome = st.selectbox(
+            "Filière",
+            ["GINF1", "GINF2", "GINF3"],
+            index=1,
+            help="Choisissez la filière pour télécharger la liste binôme"
+        )
+
+        if st.button("📥 Télécharger la liste"):
+            pdf_path = f"inputs/binomes_{filiere_binome}.pdf"
+            excel_path = f"inputs/binomes_{filiere_binome}.xlsx"
+
+            if os.path.exists(pdf_path) and os.path.exists(excel_path):
+                st.success("✅ Fichiers disponibles pour téléchargement")
+
+                with open(pdf_path, "rb") as f:
+                    st.download_button(
+                        label="📄 Télécharger PDF",
+                        data=f.read(),
+                        file_name=os.path.basename(pdf_path),
+                        mime="application/pdf"
+                    )
+
+                with open(excel_path, "rb") as f:
+                    st.download_button(
+                        label="📊 Télécharger Excel",
+                        data=f.read(),
+                        file_name=os.path.basename(excel_path),
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
+            else:
+                st.error("❌ Fichiers manquants pour cette filière.")
+
+    with col2:
+        st.markdown("### ℹ️ Instructions")
+        st.markdown("""
+        <div class="instruction-card" style="font-size: 1.05rem;">
+            <ul>
+                <li>Sélectionnez la filière de votre groupe TP</li>
+                <li>Cliquez sur le bouton pour générer les options</li>
+                <li>Téléchargez la version PDF ou Excel de la liste</li>
+                <li>Chaque liste contient les noms, numéros et colonnes de présence</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
