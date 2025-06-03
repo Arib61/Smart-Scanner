@@ -3,7 +3,9 @@ import os
 import tempfile
 from PIL import Image
 import base64
-
+import io
+from openpyxl import Workbook
+from openpyxl.drawing.image import Image as XLImage
 # Import des modules de traitement
 from pdf_creator import create_searchable_pdf
 from image_to_excel_converter_local import image_to_excel_converter_local as image_to_excel_converter
@@ -32,6 +34,337 @@ st.markdown("""
 <style>
     /* Variables CSS - Couleurs officielles ENSAT/UAE */
     /* Variables CSS - Palette de couleurs ENSAT/UAE Premium */
+body, .main, .block-container, .stApp {
+        background-color: white !important;
+        color: black !important;
+    }
+
+    /* Forcer les textes Streamlit */
+    .css-1d391kg, .css-1d391kg * {
+        color: black !important;
+    }
+
+    /* Forcer les boutons */
+    button {
+        color: black !important;
+        background-color: white !important;
+        border-color: #ccc !important;
+    }
+
+    /* Éventuellement forcer les autres éléments pour éviter les fonds sombres */
+    .stSidebar, .sidebar-content {
+        background-color: white !important;
+        color: black !important;
+    }
+/* Forcer background et texte clair sur la barre du haut */
+.css-1v3fvcr {
+    background-color: white !important;
+    color: black !important;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.1) !important;
+}
+
+/* Forcer background clair sur le menu hamburger (3 points) */
+.css-1hynsf2 {
+    background-color: white !important;
+    color: black !important;
+}
+
+/* Forcer background clair sur la zone upload */
+.stFileUploader > div {
+    background-color: white !important;
+    border-color: #ccc !important;
+    color: black !important;
+}
+
+/* Forcer texte noir dans les selects et inputs */
+.stSelectbox > div > div,
+.stTextInput > div > div > input,
+.stNumberInput > div > div > input,
+.stTextArea > div > div > textarea {
+    background-color: white !important;
+    color: black !important;
+    border-color: #ccc !important;
+}
+
+/* Forcer background clair sur les listes déroulantes */
+div[data-baseweb="select"] {
+    background-color: white !important;
+    color: black !important;
+}
+
+/* Forcer background blanc et texte noir sur tous les containers principaux */
+.block-container {
+    background-color: white !important;
+    color: black !important;
+}
+
+/* Forcer le fond de page à blanc */
+body {
+    background-color: white !important;
+    color: black !important;
+}
+/* Forcer texte noir globalement */
+body, .block-container, .stApp, .stMarkdown, .stText, .stTextInput label, .stCheckbox label, .stRadio label, .stSelectbox label {
+    color: #111111 !important;
+    font-weight: 600 !important;
+}
+
+/* Forcer titres visibles */
+h1, h2, h3, h4, h5, h6 {
+    color: #111111 !important;
+    font-weight: 700 !important;
+}
+
+/* Forcer couleur des paragraphes */
+p, span, div, label {
+    color: #222222 !important;
+}
+
+/* Forcer couleur des labels et aides */
+.stTextInput label, .stCheckbox label, .stRadio label, .stSelectbox label {
+    color: #222222 !important;
+}
+
+/* Forcer texte dans les boutons */
+.stButton > button, .stDownloadButton > button {
+    color: black !important;
+}
+
+/* Forcer texte dans les messages d’erreur / succès */
+.success-box, .error-box, .warning-box, .status-success, .status-error, .status-warning {
+    color: #222222 !important;
+}
+
+/* Forcer couleur dans les composants Streamlit */
+/* Input text, textarea, selectbox */
+.stTextInput > div > div > input,
+.stTextArea > div > div > textarea,
+.stSelectbox > div > div > select,
+.stNumberInput > div > div > input {
+    color: black !important;
+}
+
+/* Forcer couleur des placeholders */
+input::placeholder, textarea::placeholder {
+    color: #888888 !important;
+}
+
+/* Forcer couleur des options sélectionnées dans selectbox */
+div[data-baseweb="select"] div[role="option"] {
+    color: black !important;
+}
+
+/* Forcer couleur des éléments hover / focus */
+.stTextInput > div > div > input:focus,
+.stTextArea > div > div > textarea:focus,
+.stSelectbox > div > div > select:focus {
+    color: black !important;
+}
+
+/* Forcer couleur dans les checkbox et radio */
+.stCheckbox > div > label, .stRadio > div > label {
+    color: black !important;
+}
+
+/* Forcer le texte noir dans la sidebar si visible */
+.stSidebar {
+    background-color: white !important;
+    color: black !important;
+}
+
+/* Forcer les boutons streamlit */
+.stButton > button {
+    background-color: white !important;
+    color: black !important;
+    border: 1px solid #ccc !important;
+}
+
+/* Forcer les tabs background clair */
+.stTabs [data-baseweb="tab-list"] {
+    background-color: white !important;
+    border-color: #ccc !important;
+}
+
+.stTabs [data-baseweb="tab"] {
+    background-color: white !important;
+    color: black !important;
+    border: 1px solid #ccc !important;
+}
+
+/* Forcer les hover tabs */
+.stTabs [data-baseweb="tab"]:hover {
+    background-color: #f0f0f0 !important;
+    color: black !important;
+}
+
+/* Forcer le texte noir dans les labels */
+label {
+    color: black !important;
+}
+
+/* Forcer les messages d’erreur ou succès avec fond clair */
+.error-box, .success-box {
+    background-color: #fef2f2 !important;
+    color: #991b1b !important;
+    padding: 1rem !important;
+    border-radius: 8px !important;
+}
+
+/* Forcer la scrollbar en mode clair */
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #3b82f6 0%, #ea580c 100%) !important;
+    border-color: white !important;
+}
+
+/* Forcer le texte dans les boutons download */
+.stDownloadButton > button {
+    background-color: #10b981 !important;
+    color: white !important;
+}
+
+/* Corriger les tooltips si besoin */
+[data-testid="stTooltip"] {
+    background-color: white !important;
+    color: black !important;
+}
+/* Barre top de Streamlit avec Deploy */
+header[data-testid="stHeader"] {
+    background-color: white !important;
+    color: black !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+    border-bottom: 1px solid #ccc !important;
+}
+
+/* Boutons et icônes dans cette barre */
+header[data-testid="stHeader"] button,
+header[data-testid="stHeader"] svg,
+header[data-testid="stHeader"] div {
+    color: black !important;
+    fill: black !important;
+}
+
+/* Texte dans la barre */
+header[data-testid="stHeader"] span,
+header[data-testid="stHeader"] div {
+    color: black !important;
+}
+
+/* Cacher l’ombre sombre pour plus de propreté */
+header[data-testid="stHeader"] {
+    box-shadow: none !important;
+}
+/* Fond blanc + texte noir des menus déroulants (selectbox) */
+div[data-baseweb="select"] {
+    background-color: white !important;
+    color: black !important;
+}
+
+/* Fond blanc des options dans le menu déroulant */
+div[data-baseweb="select"] div[role="option"] {
+    background-color: white !important;
+    color: black !important;
+}
+
+/* Fond blanc et texte noir du menu sélectionné */
+div[data-baseweb="select"] div[role="listbox"] {
+    background-color: white !important;
+    color: black !important;
+}
+
+/* Correction pour le champ number_input (zone autour du champ) */
+div[data-baseweb="input"] {
+    background-color: white !important;
+    color: black !important;
+}
+
+/* Correction pour les champs input (texte et fond) */
+input {
+    background-color: white !important;
+    color: black !important;
+}
+
+/* Correction pour les éléments "number input" avec flèches */
+input[type=number] {
+    background-color: white !important;
+    color: black !important;
+}
+
+/* Supprimer le fond noir dans les listes déroulantes ouvertes */
+div[role="listbox"] {
+    background-color: white !important;
+    color: black !important;
+}
+
+/* Correction pour la barre du nombre de séances (number input) */
+.stNumberInput > div > div {
+    background-color: white !important;
+    color: black !important;
+}
+
+/* Correction pour la liste déroulante de type selectbox (label et texte) */
+.stSelectbox > div > div {
+    background-color: white !important;
+    color: black !important;
+}
+
+div[role="listbox"] {
+    background-color: white !important;
+    color: black !important;
+}
+
+div[role="option"] {
+    background-color: white !important;
+    color: black !important;
+}
+
+div[role="option"][aria-selected="true"] {
+    background-color: #3b82f6 !important;
+    color: white !important;
+}
+
+div[role="option"]:hover, div[role="option"]:focus {
+    background-color: #60a5fa !important;
+    color: white !important;
+}
+
+/* Pour renforcer le style sur les selects basés sur baseweb (Streamlit) */
+div[data-baseweb="select"] div[role="listbox"],
+div[data-baseweb="select"] div[role="option"] {
+    background-color: white !important;
+    color: black !important;
+}
+/* Forcer le mode clair même en dark mode pour select, inputs, scrollbars, etc. */
+[data-testid="stApp"] {
+    background-color: white !important;
+    color: black !important;
+}
+
+[data-testid="stApp"] select,
+[data-testid="stApp"] input,
+[data-testid="stApp"] textarea,
+[data-testid="stApp"] option,
+[data-testid="stApp"] div[role="listbox"],
+[data-testid="stApp"] div[role="option"] {
+    background-color: white !important;
+    color: black !important;
+    border-color: #ccc !important;
+}
+
+/* Hover et sélection dans select */
+[data-testid="stApp"] div[role="option"][aria-selected="true"],
+[data-testid="stApp"] div[role="option"]:hover,
+[data-testid="stApp"] div[role="option"]:focus {
+    background-color: #3b82f6 !important;
+    color: white !important;
+}
+
+/* Scrollbar clair */
+[data-testid="stApp"] ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #3b82f6 0%, #ea580c 100%) !important;
+    border-color: white !important;
+}
+
+            
 :root {
     --primary-blue: #0f172a;
     --secondary-blue: #1e40af;
@@ -47,7 +380,7 @@ st.markdown("""
     --text-primary: #0f172a;
     --text-secondary: #334155; /* Augmentation du contraste */
     --text-muted: #64748b;
-    --text-white: #ffffff;
+    --text-black: #ffffff;
     
     --bg-primary: #ffffff;
     --bg-secondary: #f8fafc;
@@ -1007,11 +1340,11 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Navigation avec tabs
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab5, tab6 = st.tabs([
     "🏠 Accueil", 
     "📄 PDF Scanner", 
     "📊 Excel Generator", 
-    "👥 Group Manager",
+    #
     "📝 Liste Absence",
     "📄 Liste Binômes TP"
 ])
@@ -1144,99 +1477,208 @@ with tab1:
 
 with tab2:
     st.markdown(
-    """
-    <div style=" color: white; padding: 12px; border-radius: 8px; font-size: 34px;">
-        📄 Convertisseur Image vers PDF
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+        """
+        <div style=" color: black; padding: 12px; border-radius: 8px; font-size: 34px;">
+            📄 Convertisseur Image vers PDF
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
+    # Initialisation session_state
+    if "uploaded_file_bytes" not in st.session_state:
+        st.session_state.uploaded_file_bytes = None
+        st.session_state.uploaded_file_name = None
+    if "download_data" not in st.session_state:
+        st.session_state.download_data = None
+        st.session_state.download_name = None
 
-    
     col1, col2 = st.columns([1, 1])
-    
+
     with col1:
         st.markdown('<div class="upload-zone-modern">', unsafe_allow_html=True)
+
+        # File uploader
         uploaded_file = st.file_uploader(
             "Glissez votre image ici ou cliquez pour parcourir",
             type=['png', 'jpg', 'jpeg'],
             help="Formats pris en charge: PNG, JPG, JPEG (Taille max: 200MB)"
         )
         st.markdown('</div>', unsafe_allow_html=True)
-        
-        if uploaded_file:
-            st.image(uploaded_file, caption="Aperçu de l'image téléchargée", use_container_width=True)
+
+        # --- Style CSS des boutons ---
+        st.markdown(
+            """
+            <style>
+            .btn-download-list {
+                background: linear-gradient(90deg, #264653, #2a9d8f);
+                color: white;
+                padding: 12px 25px;
+                border-radius: 12px;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+                font-weight: bold;
+                font-size: 16px;
+                margin-top: 15px;
+                display: inline-block;
+                cursor: pointer;
+                text-align: center;
+                user-select: none;
+                transition: background 0.3s ease;
+            }
+            .btn-download-list:hover {
+                background: linear-gradient(90deg, #2a9d8f, #264653);
+            }
+            .btn-download-excel {
+                background: linear-gradient(90deg, #00695c, #00897b);
+                color: white;
+                padding: 12px 25px;
+                border-radius: 12px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+                font-weight: bold;
+                font-size: 16px;
+                margin-top: 10px;
+                display: inline-block;
+                cursor: pointer;
+                text-align: center;
+                user-select: none;
+                transition: background 0.3s ease;
+            }
+            .btn-download-excel:hover {
+                background: linear-gradient(90deg, #00897b, #00695c);
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        # --- Bouton "Télécharger liste étudiants pour test" ---
+        if st.button("📥 Télécharger une liste des étudiants pour test", key="btn_list", help="Télécharge la liste et charge image test"):
+            import io
+            import pandas as pd
+
+            # Créer DataFrame exemple
+            df = pd.DataFrame({
+                "Nom": ["Dupont", "Durand", "Martin"],
+                "Prénom": ["Alice", "Bob", "Charlie"],
+                "Email": ["alice@mail.com", "bob@mail.com", "charlie@mail.com"]
+            })
+            buffer = io.BytesIO()
+            df.to_excel(buffer, index=False)
+            buffer.seek(0)
+
+            # Stocker en session pour bouton Excel (plus bas)
+            st.session_state.download_data = buffer.getvalue()
+            st.session_state.download_name = "liste_etudiants_test.xlsx"
+
+            # Charger image test
+            default_path = "inputs/test1.jpg"
+            import os
+            if os.path.exists(default_path):
+                with open(default_path, "rb") as f:
+                    st.session_state.uploaded_file_bytes = f.read()
+                    st.session_state.uploaded_file_name = "test1.jpg"
+            else:
+                st.error(f"Fichier de test introuvable : {default_path}")
+
+        # --- Bouton "Télécharger le fichier Excel" (visible si on a le fichier en session) ---
+        import base64
+        if st.session_state.download_data is not None:
+            b64 = base64.b64encode(st.session_state.download_data).decode()
             
-            # Informations détaillées sur le fichier
-            file_size = len(uploaded_file.getvalue()) / (1024 * 1024)  # MB
+
+        # --- Affichage image uploadée ou image test ---
+        if uploaded_file is not None:
+            image_bytes = uploaded_file.getvalue()
+            file_name = uploaded_file.name
+            file_type = uploaded_file.type
+        elif st.session_state.uploaded_file_bytes is not None:
+            image_bytes = st.session_state.uploaded_file_bytes
+            file_name = st.session_state.uploaded_file_name
+            file_type = "image/jpeg"
+        else:
+            image_bytes = None
+            file_name = None
+            file_type = None
+
+        if image_bytes is not None:
+            st.image(image_bytes, caption=f"Aperçu: {file_name}", use_container_width=True)
+            file_size = len(image_bytes) / (1024 * 1024)
             st.markdown(f"""
             <div class="professional-card">
                 <h3>📄 Informations du Fichier</h3>
-                <p><strong>Nom:</strong> {uploaded_file.name}</p>
+                <p><strong>Nom:</strong> {file_name}</p>
                 <p><strong>Taille:</strong> {file_size:.2f} MB</p>
-                <p><strong>Type:</strong> {uploaded_file.type}</p>
+                <p><strong>Type:</strong> {file_type}</p>
             </div>
             """, unsafe_allow_html=True)
-    
+
     with col2:
-        if uploaded_file:
+        if uploaded_file is not None or st.session_state.uploaded_file_bytes is not None:
             st.markdown("### ⚙️ Options de traitement")
-            
-            # Options améliorées
+
             quality = st.select_slider(
                 "Qualité OCR",
                 options=["Rapide", "Standard", "Précis", "Ultra"],
                 value="Standard",
                 help="Rapide: traitement accéléré | Standard: équilibre qualité/vitesse | Précis: haute précision | Ultra: qualité maximale"
             )
-            
+
             col_opt1, col_opt2 = st.columns(2)
             with col_opt1:
                 add_background = st.checkbox("Conserver l'image", value=True)
                 enhance_contrast = st.checkbox("Améliorer le contraste", value=False)
-            
+
             with col_opt2:
                 auto_rotate = st.checkbox("Rotation automatique", value=True)
                 compress_pdf = st.checkbox("Compression PDF", value=True)
-            
-            # Progress bar placeholder
+
             progress_placeholder = st.empty()
-            
+
             if st.button("🔄 Générer PDF", key="pdf_gen", type="primary"):
                 progress_bar = progress_placeholder.progress(0)
                 status_text = st.empty()
-                
+
                 try:
                     status_text.text("📤 Upload en cours...")
                     progress_bar.progress(20)
-                    
-                    # Sauvegarder temporairement
-                    temp_path = os.path.join("temp_uploads", uploaded_file.name)
-                    with open(temp_path, "wb") as f:
-                        f.write(uploaded_file.getvalue())
-                    
+
+                    temp_dir = "temp_uploads"
+                    import os
+                    os.makedirs(temp_dir, exist_ok=True)
+
+                    if uploaded_file is not None:
+                        temp_path = os.path.join(temp_dir, uploaded_file.name)
+                        with open(temp_path, "wb") as f:
+                            f.write(uploaded_file.getvalue())
+                        name_for_file = uploaded_file.name
+                    else:
+                        temp_path = os.path.join(temp_dir, st.session_state.uploaded_file_name)
+                        with open(temp_path, "wb") as f:
+                            f.write(st.session_state.uploaded_file_bytes)
+                        name_for_file = st.session_state.uploaded_file_name
+
                     status_text.text("🔍 Analyse de l'image...")
                     progress_bar.progress(50)
-                    
-                    # Générer PDF
-                    output_path = os.path.join("generated_files", f"document_{uploaded_file.name.split('.')[0]}.pdf")
-                    
+
+                    output_dir = "generated_files"
+                    os.makedirs(output_dir, exist_ok=True)
+
+                    output_path = os.path.join(output_dir, f"document_{os.path.splitext(name_for_file)[0]}.pdf")
+
                     status_text.text("📄 Génération du PDF...")
                     progress_bar.progress(80)
-                    
+
                     result_path = create_searchable_pdf(temp_path, output_path, quality, add_background)
-                    
+
                     progress_bar.progress(100)
                     status_text.text("✅ Traitement terminé!")
-                    
+
                     if result_path and os.path.exists(result_path):
-                        st.markdown('<div style="color: white; ">✅ PDF généré avec succès!</div>', unsafe_allow_html=True) 
-                        
-                        # Statistiques du fichier
-                        file_size = os.path.getsize(result_path) / (1024 * 1024)
-                        st.info(f"📊 Taille du PDF: {file_size:.1f} MB")
-                        
+                        st.markdown('<div style="color: black; ">✅ PDF généré avec succès!</div>', unsafe_allow_html=True)
+
+                        file_size_pdf = os.path.getsize(result_path) / (1024 * 1024)
+                        st.info(f"📊 Taille du PDF: {file_size_pdf:.1f} MB")
+
                         with open(result_path, "rb") as file:
                             st.download_button(
                                 label="📥 Télécharger PDF",
@@ -1247,16 +1689,17 @@ with tab2:
                             )
                     else:
                         st.markdown('<div class="error-box">❌ Erreur lors de la génération du PDF</div>', unsafe_allow_html=True)
-                        
+
                 except Exception as e:
                     st.markdown(f'<div class="error-box">❌ Erreur: {str(e)}</div>', unsafe_allow_html=True)
                 finally:
                     progress_placeholder.empty()
 
+
 with tab3:
     st.markdown(
         """
-        <div style="color: white; padding: 12px; border-radius: 8px; font-size: 34px;">
+        <div style="color: black; padding: 12px; border-radius: 8px; font-size: 34px;">
             📊 <strong>Extracteur de Tableaux vers Excel</strong>
         </div>
         """,
@@ -1265,27 +1708,23 @@ with tab3:
 
     st.markdown(
         """
-        <div style="color: white; padding: 12px; border-radius: 8px; font-size: 24px;">
+        <div style="color: black; padding: 12px; border-radius: 8px; font-size: 24px;">
             🎯 <strong>Type de Conversion</strong>
         </div>
         """,
         unsafe_allow_html=True
     )
 
-
-    # ✅ Boîte d'info élégante
     st.markdown(
         """
         <div style="background-color: #f0f2f6; padding: 12px; border-left: 5px solid #4a90e2;
                     border-radius: 8px; margin-bottom: 10px; color: #333;">
             <strong>🛠️ Choisissez le type de conversion :</strong><br>
-
         </div>
         """,
         unsafe_allow_html=True
     )
 
-    # ✅ Selectbox simple et aligné
     conversion_type = st.selectbox(
         "",
         [
@@ -1294,36 +1733,133 @@ with tab3:
         ]
     )
 
-    # ✅ Séparation visuelle
-    st.markdown("<hr style='border: 1px solid #555;'>", unsafe_allow_html=True)
+    
 
-    
+    # Initialisation session_state spécifique tab3
+    if "uploaded_file_bytes_tab3" not in st.session_state:
+        st.session_state.uploaded_file_bytes_tab3 = None
+        st.session_state.uploaded_file_name_tab3 = None
+    if "download_data_tab3" not in st.session_state:
+        st.session_state.download_data_tab3 = None
+        st.session_state.download_name_tab3 = None
+
     col1, col2 = st.columns([1, 1])
-    
+
     with col1:
         st.markdown('<div class="upload-zone">', unsafe_allow_html=True)
         table_image = st.file_uploader(
             "Image à traiter",
             type=['png', 'jpg', 'jpeg'],
-            key="excel_upload",
+            key="excel_upload_tab3",
             help="Choisissez une image selon le type de conversion sélectionné"
         )
         st.markdown('</div>', unsafe_allow_html=True)
-        
-        if table_image:
-            st.image(table_image, caption="Image à traiter", use_container_width=True)
+
+        # Style CSS boutons
+        st.markdown(
+            """
+            <style>
+            .btn-download-list {
+                background: linear-gradient(90deg, #264653, #2a9d8f);
+                color: white;
+                padding: 12px 25px;
+                border-radius: 12px;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+                font-weight: bold;
+                font-size: 16px;
+                margin-top: 15px;
+                display: inline-block;
+                cursor: pointer;
+                text-align: center;
+                user-select: none;
+                transition: background 0.3s ease;
+            }
+            .btn-download-list:hover {
+                background: linear-gradient(90deg, #2a9d8f, #264653);
+            }
+            .btn-download-excel {
+                background: linear-gradient(90deg, #00695c, #00897b);
+                color: white;
+                padding: 12px 25px;
+                border-radius: 12px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+                font-weight: bold;
+                font-size: 16px;
+                margin-top: 10px;
+                display: inline-block;
+                cursor: pointer;
+                text-align: center;
+                user-select: none;
+                transition: background 0.3s ease;
+            }
+            .btn-download-excel:hover {
+                background: linear-gradient(90deg, #00897b, #00695c);
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        # Bouton Télécharger liste étudiants pour test + charge image test
+        if st.button("📥 Télécharger liste étudiants pour test", key="btn_list_tab3", help="Télécharge la liste et charge image test"):
+            df = pd.DataFrame({
+                "Nom": ["Dupont", "Durand", "Martin"],
+                "Prénom": ["Alice", "Bob", "Charlie"],
+                "Email": ["alice@mail.com", "bob@mail.com", "charlie@mail.com"]
+            })
+            buffer = io.BytesIO()
+            df.to_excel(buffer, index=False)
+            buffer.seek(0)
+
+            st.session_state.download_data_tab3 = buffer.getvalue()
+            st.session_state.download_name_tab3 = "liste_etudiants_test.xlsx"
+
+            default_path = "inputs/test2.jpg"
+            if os.path.exists(default_path):
+                with open(default_path, "rb") as f:
+                    st.session_state.uploaded_file_bytes_tab3 = f.read()
+                    st.session_state.uploaded_file_name_tab3 = "test2.jpg"
+            else:
+                st.error(f"Fichier test introuvable : {default_path}")
+
+        # Bouton Télécharger fichier Excel visible si fichier en session
+        if st.session_state.download_data_tab3 is not None:
+            b64 = base64.b64encode(st.session_state.download_data_tab3).decode()
             
-            # Informations sur le fichier
-            file_size = len(table_image.getvalue()) / (1024 * 1024)  # MB
-            st.info(f"📊 **{table_image.name}** ({file_size:.1f} MB)")
-    
+
+        # Affichage image uploadée ou image test
+        if table_image is not None:
+            image_bytes = table_image.getvalue()
+            file_name = table_image.name
+            file_type = table_image.type
+        elif st.session_state.uploaded_file_bytes_tab3 is not None:
+            image_bytes = st.session_state.uploaded_file_bytes_tab3
+            file_name = st.session_state.uploaded_file_name_tab3
+            file_type = "image/jpeg"
+        else:
+            image_bytes = None
+            file_name = None
+            file_type = None
+
+        if image_bytes is not None:
+            st.image(image_bytes, caption=f"Aperçu: {file_name}", use_container_width=True)
+            file_size = len(image_bytes) / (1024 * 1024)
+            st.markdown(f"""
+            <div class="professional-card">
+                <h3>📄 Informations du Fichier</h3>
+                <p><strong>Nom:</strong> {file_name}</p>
+                <p><strong>Taille:</strong> {file_size:.2f} MB</p>
+                <p><strong>Type:</strong> {file_type}</p>
+            </div>
+            """, unsafe_allow_html=True)
+
     with col2:
-        if table_image:
-            # ✅ NOUVEAU: Paramètres conditionnels selon le type
+        if table_image is not None or st.session_state.uploaded_file_bytes_tab3 is not None:
+            st.markdown("### ⚙️ Paramètres d'extraction")
+
             if "Autres listes" in conversion_type:
                 st.markdown("### ⚙️ Paramètres d'extraction OCR")
                 
-                # Paramètres avancés pour extraction de tableau
                 detection_mode = st.selectbox(
                     "Mode de détection",
                     ["Automatique", "Tableau structuré", "Données libres"],
@@ -1339,14 +1875,13 @@ with tab3:
                     clean_data = st.checkbox("Nettoyer les données", value=True)
                     auto_resize = st.checkbox("Ajuster colonnes", value=True)
                 
-                # Options avancées
                 with st.expander("🔧 Options avancées"):
                     sensitivity = st.slider("Sensibilité OCR", 0.1, 1.0, 0.7, 0.1)
                     min_confidence = st.slider("Confiance minimale", 0.1, 1.0, 0.6, 0.1)
                 
                 button_text = "📊 Extraire Tableau vers Excel"
-                
-            elif "Liste d'abssence" in conversion_type:
+
+            elif "Liste d'absence" in conversion_type:
                 st.markdown("### 📸 Paramètres de scan")
                 
                 col_param1, col_param2 = st.columns(2)
@@ -1359,95 +1894,83 @@ with tab3:
                     center_image = st.checkbox("Centrer l'image", value=True)
                 
                 button_text = "📊 Extraire Tableau vers Excel"
-                
-           
-            
+
             progress_placeholder = st.empty()
-            
-            if st.button(button_text, key="process_btn", type="primary"):
+
+            if st.button(button_text, key="process_btn_tab3", type="primary"):
                 progress_bar = progress_placeholder.progress(0)
                 status_text = st.empty()
-                
+
                 try:
                     status_text.text("📤 Préparation de l'image...")
                     progress_bar.progress(20)
-                    
-                    # Sauvegarder temporairement
-                    temp_path = os.path.join("temp_uploads", table_image.name)
-                    with open(temp_path, "wb") as f:
-                        f.write(table_image.getvalue())
-                    
-                    # ✅ LOGIQUE CONDITIONNELLE selon le type
-                    if "Extraction de tableau" in conversion_type:
+
+                    temp_dir = "temp_uploads"
+                    os.makedirs(temp_dir, exist_ok=True)
+
+                    # Déterminer le fichier image source (upload ou test)
+                    if table_image is not None:
+                        temp_path = os.path.join(temp_dir, table_image.name)
+                        with open(temp_path, "wb") as f:
+                            f.write(table_image.getvalue())
+                        name_for_file = table_image.name
+                    else:
+                        temp_path = os.path.join(temp_dir, st.session_state.uploaded_file_name_tab3)
+                        with open(temp_path, "wb") as f:
+                            f.write(st.session_state.uploaded_file_bytes_tab3)
+                        name_for_file = st.session_state.uploaded_file_name_tab3
+
+                    if "Autres listes" in conversion_type:
                         status_text.text("🔍 Extraction OCR du tableau...")
                         progress_bar.progress(50)
-                        
-                        output_path = os.path.join("generated_files", f"tableau_{table_image.name.split('.')[0]}.xlsx")
-                        
+
+                        output_dir = "generated_files"
+                        os.makedirs(output_dir, exist_ok=True)
+                        output_path = os.path.join(output_dir, f"tableau_{os.path.splitext(name_for_file)[0]}.xlsx")
+
                         status_text.text("📊 Génération de l'Excel...")
                         progress_bar.progress(80)
                         st.info("🧠 Mode utilisé : OCR avancé avec EasyOCR")
-                        
-                        # Utiliser votre fonction OCR existante
+
+                        # Appel à ta fonction d’extraction OCR
                         result_path = image_to_excel_converter(
                             image_path=temp_path,
                             output_path=output_path
                         )
-                        
-                    elif "Scan simple" in conversion_type:
+
+                    elif "Liste d'absence" in conversion_type:
                         status_text.text("📸 Insertion de l'image...")
                         progress_bar.progress(60)
-                        
-                        output_path = os.path.join("generated_files", f"scan_{table_image.name.split('.')[0]}.xlsx")
-                        
-                        # ✅ NOUVEAU: Utiliser votre fonction d'insertion d'image
-                        from openpyxl import Workbook
-                        from openpyxl.drawing.image import Image as XLImage
-                        
+
+                        output_dir = "generated_files"
+                        os.makedirs(output_dir, exist_ok=True)
+                        output_path = os.path.join(output_dir, f"scan_{os.path.splitext(name_for_file)[0]}.xlsx")
+
                         def insert_image_into_excel_local(image_path, output_excel_path):
                             wb = Workbook()
                             ws = wb.active
                             ws.title = "Image Scannée"
-                            
+
                             img = XLImage(image_path)
-                            
-                            # Redimensionner si demandé
                             if resize_image:
                                 img.width = img.width * image_quality
                                 img.height = img.height * image_quality
-                            
+
                             ws.add_image(img, 'A1')
                             wb.save(output_excel_path)
                             return output_excel_path
-                        
+
                         result_path = insert_image_into_excel_local(temp_path, output_path)
-                        
-                    else:  # Liste d'absence - scan rapide
-                        status_text.text("📋 Scan rapide de la liste...")
-                        progress_bar.progress(50)
-                        
-                        output_path = os.path.join("generated_files", f"liste_absence_{table_image.name.split('.')[0]}.xlsx")
-                        
-                        status_text.text("📊 Formatage de la liste...")
-                        progress_bar.progress(80)
-                        
-                        
-                        # Mode rapide avec logique simplifiée
-                        result_path = image_to_excel_converter(
-                            image_path=temp_path,
-                            output_path=output_path
-                        )
-                    
+
                     progress_bar.progress(100)
                     status_text.text("✅ Traitement terminé!")
-                    
+
                     if result_path and os.path.exists(result_path):
                         st.markdown('<div class="success-box">✅ Fichier généré avec succès!</div>', unsafe_allow_html=True)
-                        
-                        # Statistiques
-                        file_size = os.path.getsize(result_path) / 1024  # KB
+
+                        file_size = os.path.getsize(result_path) / 1024
                         st.info(f"📊 Taille du fichier: {file_size:.1f} KB")
-                        
+
                         with open(result_path, "rb") as file:
                             st.download_button(
                                 label="📥 Télécharger Excel",
@@ -1458,166 +1981,147 @@ with tab3:
                             )
                     else:
                         st.markdown('<div class="error-box">❌ Erreur lors du traitement. Vérifiez votre image.</div>', unsafe_allow_html=True)
-                        
-                        # Conseils selon le type
-                        if "Extraction de tableau" in conversion_type:
-                            with st.expander("💡 Conseils pour l'extraction de tableau"):
-                                st.markdown("""
-                                - Assurez-vous que le tableau a des bordures visibles
-                                - Vérifiez le contraste entre texte et arrière-plan
-                                - Évitez les images floues
-                                - Le tableau doit être bien structuré
-                                """)
-                        elif "Liste d'absence" in conversion_type:
-                            with st.expander("💡 Conseils pour les listes d'absence"):
-                                st.markdown("""
-                                - La liste doit être claire et lisible
-                                - Un nom par ligne de préférence
-                                - Évitez les écritures manuscrites illisibles
-                                - Bonne résolution d'image recommandée
-                                """)
-                        
+
                 except Exception as e:
                     st.markdown(f'<div class="error-box">❌ Erreur: {str(e)}</div>', unsafe_allow_html=True)
                 finally:
                     progress_placeholder.empty()
-
-with tab4:
+# with tab4:
     
-    st.markdown(
-        """
-        <div style="color: white; padding: 12px; border-radius: 8px; font-size: 34px;">
-            👥 Générateur de Groupes d'Étudiants</strong>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+#     st.markdown(
+#         """
+#         <div style="color: black; padding: 12px; border-radius: 8px; font-size: 34px;">
+#             👥 Générateur de Groupes d'Étudiants</strong>
+#         </div>
+#         """,
+#         unsafe_allow_html=True
+#     )
     
-    col1, col2 = st.columns([1, 1])
+#     col1, col2 = st.columns([1, 1])
     
-    with col1:
-        st.markdown(
-        """
-        <div style="color: white; padding: 12px; border-radius: 8px; font-size: 28px;">
-            📝 Feuille de Présence</strong>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+#     with col1:
+#         st.markdown(
+#         """
+#         <div style="color: black; padding: 12px; border-radius: 8px; font-size: 28px;">
+#             📝 Feuille de Présence</strong>
+#         </div>
+#         """,
+#         unsafe_allow_html=True
+#     )
         
-        with st.form("attendance_form"):
-            class_name = st.text_input(
-                "Nom de la classe", 
-                value="GI-S5", 
-                placeholder="Ex: GI-S5, RT-S3...",
-                help="Identifiant de la classe ou du groupe"
-            )
+#         with st.form("attendance_form"):
+#             class_name = st.text_input(
+#                 "Nom de la classe", 
+#                 value="GI-S5", 
+#                 placeholder="Ex: GI-S5, RT-S3...",
+#                 help="Identifiant de la classe ou du groupe"
+#             )
             
-            col_form1, col_form2 = st.columns(2)
-            with col_form1:
-                num_sessions = st.number_input("Nombre de séances", min_value=1, max_value=20, value=6)
-            with col_form2:
-                num_students = st.number_input("Nombre d'étudiants", min_value=5, max_value=100, value=30)
+#             col_form1, col_form2 = st.columns(2)
+#             with col_form1:
+#                 num_sessions = st.number_input("Nombre de séances", min_value=1, max_value=20, value=6)
+#             with col_form2:
+#                 num_students = st.number_input("Nombre d'étudiants", min_value=5, max_value=100, value=30)
             
-            # Options supplémentaires
-            include_notes = st.checkbox("Inclure une colonne notes", value=False)
-            custom_header = st.text_input("En-tête personnalisé", placeholder="Université/École...")
+#             # Options supplémentaires
+#             include_notes = st.checkbox("Inclure une colonne notes", value=False)
+#             custom_header = st.text_input("En-tête personnalisé", placeholder="Université/École...")
             
-            submitted = st.form_submit_button("📄 Générer Feuille de Présence", type="primary")
+#             submitted = st.form_submit_button("📄 Générer Feuille de Présence", type="primary")
             
-            if submitted:
-                with st.spinner("📋 Génération de la feuille de présence..."):
-                    try:
-                        output_path = os.path.join("generated_files", f"presence_{class_name}_{num_sessions}seances.pdf")
-                        result_path = generate_attendance_pdf(
-                            class_name, 
-                            num_sessions, 
-                            num_students, 
-                            output_path,
-                            include_notes=include_notes,
-                            custom_header=custom_header
-                        )
+#             if submitted:
+#                 with st.spinner("📋 Génération de la feuille de présence..."):
+#                     try:
+#                         output_path = os.path.join("generated_files", f"presence_{class_name}_{num_sessions}seances.pdf")
+#                         result_path = generate_attendance_pdf(
+#                             class_name, 
+#                             num_sessions, 
+#                             num_students, 
+#                             output_path,
+#                             include_notes=include_notes,
+#                             custom_header=custom_header
+#                         )
                         
-                        if result_path and os.path.exists(result_path):
-                            st.markdown('<div class="success-box">✅ Feuille de présence générée avec succès!</div>', unsafe_allow_html=True)
+#                         if result_path and os.path.exists(result_path):
+#                             st.markdown('<div class="success-box">✅ Feuille de présence générée avec succès!</div>', unsafe_allow_html=True)
                             
-                            with open(result_path, "rb") as file:
-                                st.download_button(
-                                    label="📥 Télécharger Feuille",
-                                    data=file.read(),
-                                    file_name=os.path.basename(result_path),
-                                                                        mime="application/pdf",
-                                    type="secondary"
-                                )
-                        else:
-                            st.markdown('<div class="error-box">❌ Erreur lors de la génération de la feuille</div>', unsafe_allow_html=True)
-                    except Exception as e:
-                        st.markdown(f'<div class="error-box">❌ Erreur: {str(e)}</div>', unsafe_allow_html=True)
+#                             with open(result_path, "rb") as file:
+#                                 st.download_button(
+#                                     label="📥 Télécharger Feuille",
+#                                     data=file.read(),
+#                                     file_name=os.path.basename(result_path),
+#                                                                         mime="application/pdf",
+#                                     type="secondary"
+#                                 )
+#                         else:
+#                             st.markdown('<div class="error-box">❌ Erreur lors de la génération de la feuille</div>', unsafe_allow_html=True)
+#                     except Exception as e:
+#                         st.markdown(f'<div class="error-box">❌ Erreur: {str(e)}</div>', unsafe_allow_html=True)
     
-    with col2:
-        st.markdown(
-        """
-        <div style="color: white; padding: 12px; border-radius: 8px; font-size: 28px;">
-            👥 Créateur de Groupes</strong>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+#     with col2:
+#         st.markdown(
+#         """
+#         <div style="color: black; padding: 12px; border-radius: 8px; font-size: 28px;">
+#             👥 Créateur de Groupes</strong>
+#         </div>
+#         """,
+#         unsafe_allow_html=True
+#     )
 
-        with st.form("group_form"):
-            student_list_text = st.text_area(
-                "Liste des étudiants (un par ligne)",
-                placeholder="Ex: Fatima BENALI\nYoussef TAZI\nAmine LAMRANI",
-                height=200
-            )
+#         with st.form("group_form"):
+#             student_list_text = st.text_area(
+#                 "Liste des étudiants (un par ligne)",
+#                 placeholder="Ex: Fatima BENALI\nYoussef TAZI\nAmine LAMRANI",
+#                 height=200
+#             )
 
-            group_size = st.number_input("Taille des groupes", min_value=2, max_value=10, value=3)
-            file_prefix = st.text_input("Nom de fichier (optionnel)", value="groupes_classe")
+#             group_size = st.number_input("Taille des groupes", min_value=2, max_value=10, value=3)
+#             file_prefix = st.text_input("Nom de fichier (optionnel)", value="groupes_classe")
 
-            submitted_group = st.form_submit_button("👥 Générer les Groupes", type="primary")
+#             submitted_group = st.form_submit_button("👥 Générer les Groupes", type="primary")
 
-            if submitted_group:
-                if not student_list_text.strip():
-                    st.markdown('<div class="warning-box">⚠️ Veuillez saisir la liste des étudiants.</div>', unsafe_allow_html=True)
-                else:
-                    with st.spinner("🔧 Création des groupes..."):
-                        try:
-                            students = [line.strip() for line in student_list_text.strip().split('\n') if line.strip()]
-                            excel_path = os.path.join("generated_files", f"{file_prefix}.xlsx")
-                            pdf_path = os.path.join("generated_files", f"{file_prefix}.pdf")
+#             if submitted_group:
+#                 if not student_list_text.strip():
+#                     st.markdown('<div class="warning-box">⚠️ Veuillez saisir la liste des étudiants.</div>', unsafe_allow_html=True)
+#                 else:
+#                     with st.spinner("🔧 Création des groupes..."):
+#                         try:
+#                             students = [line.strip() for line in student_list_text.strip().split('\n') if line.strip()]
+#                             excel_path = os.path.join("generated_files", f"{file_prefix}.xlsx")
+#                             pdf_path = os.path.join("generated_files", f"{file_prefix}.pdf")
                             
-                            # Appel à ta fonction group_maker
-                            excel_result, pdf_result = create_student_groups(students, group_size, excel_path, pdf_path)
+#                             # Appel à ta fonction group_maker
+#                             excel_result, pdf_result = create_student_groups(students, group_size, excel_path, pdf_path)
                             
-                            if excel_result and pdf_result:
-                                st.markdown('<div class="success-box">✅ Groupes générés avec succès!</div>', unsafe_allow_html=True)
+#                             if excel_result and pdf_result:
+#                                 st.markdown('<div class="success-box">✅ Groupes générés avec succès!</div>', unsafe_allow_html=True)
                                 
-                                col_dl1, col_dl2 = st.columns(2)
-                                with col_dl1:
-                                    with open(excel_result, "rb") as file:
-                                        st.download_button(
-                                            label="📊 Télécharger Excel",
-                                            data=file.read(),
-                                            file_name=os.path.basename(excel_result),
-                                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                            type="secondary"
-                                        )
-                                with col_dl2:
-                                    with open(pdf_result, "rb") as file:
-                                        st.download_button(
-                                            label="📄 Télécharger PDF",
-                                            data=file.read(),
-                                            file_name=os.path.basename(pdf_result),
-                                            mime="application/pdf",
-                                            type="secondary"
-                                        )
-                            else:
-                                st.markdown('<div class="error-box">❌ Impossible de générer les fichiers de groupe.</div>', unsafe_allow_html=True)
-                        except Exception as e:
-                            st.markdown(f'<div class="error-box">❌ Erreur: {str(e)}</div>', unsafe_allow_html=True)
+#                                 col_dl1, col_dl2 = st.columns(2)
+#                                 with col_dl1:
+#                                     with open(excel_result, "rb") as file:
+#                                         st.download_button(
+#                                             label="📊 Télécharger Excel",
+#                                             data=file.read(),
+#                                             file_name=os.path.basename(excel_result),
+#                                             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+#                                             type="secondary"
+#                                         )
+#                                 with col_dl2:
+#                                     with open(pdf_result, "rb") as file:
+#                                         st.download_button(
+#                                             label="📄 Télécharger PDF",
+#                                             data=file.read(),
+#                                             file_name=os.path.basename(pdf_result),
+#                                             mime="application/pdf",
+#                                             type="secondary"
+#                                         )
+#                             else:
+#                                 st.markdown('<div class="error-box">❌ Impossible de générer les fichiers de groupe.</div>', unsafe_allow_html=True)
+#                         except Exception as e:
+#                             st.markdown(f'<div class="error-box">❌ Erreur: {str(e)}</div>', unsafe_allow_html=True)
     with tab5:
         st.markdown("""
-        <div style="color: white; padding: 12px; border-radius: 8px; font-size: 34px;">
+        <div style="color: black; padding: 12px; border-radius: 8px; font-size: 34px;">
             📝 Générateur de Liste d'Absence
         </div>
         """, unsafe_allow_html=True)
@@ -1698,13 +2202,7 @@ with tab4:
                     <li>Téléchargez le fichier généré</li>
                 </ol>
                 
-                <h3 style="margin-top: 1.5rem;">✨ Fonctionnalités</h3>
-                <ul style="line-height: 2; font-size: 1.1rem;">
-                    <li>Génération automatique avec mise en forme</li>
-                    <li>30 lignes pré-remplies pour les étudiants</li>
-                    <li>Colonnes séparées pour chaque séance</li>
-                    <li>Format professionnel prêt à imprimer</li>
-                </ul>
+                
             </div>
             """, unsafe_allow_html=True)
             
@@ -1728,7 +2226,7 @@ with tab4:
                 )
 with tab6:
     st.markdown("""
-    <div style="color: white; padding: 12px; border-radius: 8px; font-size: 34px;">
+    <div style="color: black; padding: 12px; border-radius: 8px; font-size: 34px;">
         👥 Liste de Présence par Binômes TP
     </div>
     """, unsafe_allow_html=True)
