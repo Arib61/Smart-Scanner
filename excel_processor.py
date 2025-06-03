@@ -28,6 +28,8 @@ def extract_table(image_path: str, min_confidence=0.5):
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"Image introuvable : {image_path}")
 
+    import pprint
+    pprint.pprint(result[0][:5])
     result = ocr.ocr(image_path)
 
     entries = []
@@ -35,35 +37,35 @@ def extract_table(image_path: str, min_confidence=0.5):
     for line in result[0]:
         try:
             box = line[0]
+            content = line[1]
 
-            # Cas normal : line[1] est un tuple (text, confidence)
-            if isinstance(line[1], (list, tuple)) and len(line[1]) == 2:
-                text, confidence = line[1]
-
-            # Cas dégradé : line[1] est une liste (mais pas de confiance séparée)
-            elif isinstance(line[1], (list, tuple)) and len(line[1]) == 1:
-                text = line[1][0] if line[1][0] else ""
+            # ✅ Cas standard: tuple (text, confidence)
+            if isinstance(content, (list, tuple)) and len(content) == 2:
+                text, confidence = content
+            # ✅ Cas fallback : liste à 1 seul élément ou tuple cassé
+            elif isinstance(content, (list, tuple)) and len(content) == 1:
+                text = content[0] if content[0] else ""
                 confidence = 1.0
-
-            # Cas extrême : juste un string ou vide
-            elif isinstance(line[1], str):
-                text = line[1]
+            # ✅ Cas dégradé : juste une string
+            elif isinstance(content, str):
+                text = content
                 confidence = 1.0
-
+            # 🚫 Cas non reconnu
             else:
-                # Cas inconnu : ignorer
-                continue
+                raise ValueError("Format OCR inattendu")
 
+            # Ignore les textes vides ou pas assez fiables
             if not text.strip() or confidence < min_confidence:
                 continue
 
+            # Calculer la position
             x = min(pt[0] for pt in box)
             y = min(pt[1] for pt in box)
             entries.append({'text': text.strip(), 'x': x, 'y': y})
 
         except Exception as e:
-            print(f"⚠️ Ligne ignorée à cause d'une erreur : {e}")
-            continue
+            print(f"⚠️ Ligne ignorée : {e}")
+
 
 
 
@@ -74,6 +76,9 @@ def extract_table(image_path: str, min_confidence=0.5):
         sorted_line = sorted(line, key=lambda e: e['x'])
         row = [cell['text'] for cell in sorted_line]
         table.append(row)
+
+    if not table:
+        raise ValueError("⚠️ Aucun contenu OCR détecté dans l'image.")
 
     max_cols = max(len(row) for row in table)
     table = [row + [""] * (max_cols - len(row)) for row in table]
