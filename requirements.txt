@@ -1,4 +1,4 @@
-
+openjdk==11.0.22
 streamlit==1.28.0
 pandas==2.1.0
 numpy==1.25.0
@@ -8,7 +8,7 @@ fpdf2==2.7.5
 pytesseract==0.3.10
 opencv-python-headless==4.8.0.76
 easyocr==1.7.0
-paddlepaddle==2.5.1
+paddlepaddle==2.6.0  # Version mise à jour
 paddleocr==2.7.0.3
 pdfkit==1.0.0
 PyMuPDF==1.23.0
